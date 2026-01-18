@@ -1,0 +1,802 @@
+local Players = game:GetService("Players")
+local UserInputService = game:GetService("UserInputService")
+local TweenService = game:GetService("TweenService")
+local RunService = game:GetService("RunService")
+
+local LocalPlayer = Players.LocalPlayer
+local Mouse = LocalPlayer:GetMouse()
+
+local ScreenGui = Instance.new("ScreenGui")
+ScreenGui.Name = "SimpleLibrary"
+ScreenGui.IgnoreGuiInset = true
+ScreenGui.Parent = game:GetService("CoreGui")
+
+-- Cores e configurações
+local Colors = {
+    Background = Color3.fromRGB(20, 20, 30),
+    Primary = Color3.fromRGB(140, 0, 255),
+    Secondary = Color3.fromRGB(60, 20, 100),
+    Text = Color3.fromRGB(255, 255, 255),
+    DarkText = Color3.fromRGB(200, 200, 200),
+    Button = Color3.fromRGB(40, 40, 50),
+    ButtonHover = Color3.fromRGB(60, 60, 70),
+    Border = Color3.fromRGB(80, 30, 120)
+}
+
+-- Função para criar elementos
+local function CreateElement(className, properties)
+    local element = Instance.new(className)
+    for prop, value in pairs(properties) do
+        if prop == "Parent" then
+            element.Parent = value
+        else
+            element[prop] = value
+        end
+    end
+    return element
+end
+
+-- Biblioteca principal
+local Library = {}
+
+function Library:CreateWindow(config)
+    local Window = {}
+    
+    -- Tamanho e posição
+    local size = config.Size or UDim2.new(0, 500, 0, 400)
+    local position = config.Position or UDim2.new(0.5, -250, 0.5, -200)
+    
+    -- Frame principal com imagem de fundo
+    local MainFrame = CreateElement("Frame", {
+        Name = "MainFrame",
+        Size = size,
+        Position = position,
+        BackgroundColor3 = Color3.new(1, 1, 1),
+        BackgroundTransparency = 0.1,
+        BorderSizePixel = 0,
+        Parent = ScreenGui
+    })
+    
+    -- Imagem de fundo
+    local BackgroundImage = CreateElement("ImageLabel", {
+        Name = "Background",
+        Size = UDim2.new(1, 0, 1, 0),
+        Position = UDim2.new(0, 0, 0, 0),
+        BackgroundTransparency = 1,
+        Image = "rbxassetid://128000813657160",
+        ImageColor3 = Color3.fromRGB(255, 255, 255),
+        ImageTransparency = 0.15,
+        ScaleType = Enum.ScaleType.Crop,
+        Parent = MainFrame
+    })
+    
+    -- Container principal
+    local Container = CreateElement("Frame", {
+        Name = "Container",
+        Size = UDim2.new(1, 0, 1, 0),
+        BackgroundTransparency = 1,
+        Parent = MainFrame
+    })
+    
+    -- Barra superior
+    local TopBar = CreateElement("Frame", {
+        Name = "TopBar",
+        Size = UDim2.new(1, 0, 0, 35),
+        BackgroundColor3 = Colors.Background,
+        BackgroundTransparency = 0.3,
+        BorderSizePixel = 0,
+        Parent = Container
+    })
+    
+    -- Título
+    local TitleLabel = CreateElement("TextLabel", {
+        Name = "Title",
+        Size = UDim2.new(0, 200, 1, 0),
+        Position = UDim2.new(0, 10, 0, 0),
+        BackgroundTransparency = 1,
+        Text = config.Title or "Simple Library",
+        TextColor3 = Colors.Text,
+        TextSize = 16,
+        Font = Enum.Font.GothamBold,
+        TextXAlignment = Enum.TextXAlignment.Left,
+        Parent = TopBar
+    })
+    
+    -- Botão fechar
+    local CloseButton = CreateElement("TextButton", {
+        Name = "Close",
+        Size = UDim2.new(0, 25, 0, 25),
+        Position = UDim2.new(1, -30, 0.5, 0),
+        AnchorPoint = Vector2.new(0, 0.5),
+        BackgroundColor3 = Color3.fromRGB(255, 50, 50),
+        Text = "X",
+        TextColor3 = Colors.Text,
+        TextSize = 14,
+        Font = Enum.Font.GothamBold,
+        Parent = TopBar
+    })
+    
+    -- Botão minimizar
+    local MinimizeButton = CreateElement("TextButton", {
+        Name = "Minimize",
+        Size = UDim2.new(0, 25, 0, 25),
+        Position = UDim2.new(1, -60, 0.5, 0),
+        AnchorPoint = Vector2.new(0, 0.5),
+        BackgroundColor3 = Colors.Button,
+        Text = "_",
+        TextColor3 = Colors.Text,
+        TextSize = 14,
+        Font = Enum.Font.GothamBold,
+        Parent = TopBar
+    })
+    
+    -- Container das abas
+    local TabsContainer = CreateElement("Frame", {
+        Name = "TabsContainer",
+        Size = UDim2.new(0, 150, 1, -35),
+        Position = UDim2.new(0, 0, 0, 35),
+        BackgroundColor3 = Colors.Background,
+        BackgroundTransparency = 0.2,
+        Parent = Container
+    })
+    
+    -- Container do conteúdo
+    local ContentContainer = CreateElement("Frame", {
+        Name = "ContentContainer",
+        Size = UDim2.new(1, -150, 1, -35),
+        Position = UDim2.new(0, 150, 0, 35),
+        BackgroundTransparency = 1,
+        ClipsDescendants = true,
+        Parent = Container
+    })
+    
+    -- Lista de abas
+    local TabsList = CreateElement("UIListLayout", {
+        Parent = TabsContainer,
+        Padding = UDim.new(0, 5),
+        SortOrder = Enum.SortOrder.LayoutOrder
+    })
+    
+    CreateElement("UIPadding", {
+        Parent = TabsContainer,
+        PaddingLeft = UDim.new(0, 5),
+        PaddingTop = UDim.new(0, 10)
+    })
+    
+    -- Lista de conteúdo
+    local ContentList = CreateElement("UIListLayout", {
+        Parent = ContentContainer,
+        Padding = UDim.new(0, 10),
+        SortOrder = Enum.SortOrder.LayoutOrder
+    })
+    
+    CreateElement("UIPadding", {
+        Parent = ContentContainer,
+        PaddingLeft = UDim.new(0, 15),
+        PaddingTop = UDim.new(0, 15),
+        PaddingRight = UDim.new(0, 15)
+    })
+    
+    -- Adicionar cantos arredondados
+    local function AddCorner(element, radius)
+        local corner = Instance.new("UICorner")
+        corner.CornerRadius = UDim.new(0, radius or 6)
+        corner.Parent = element
+    end
+    
+    AddCorner(MainFrame, 8)
+    AddCorner(TopBar, 8)
+    AddCorner(TabsContainer, 8)
+    AddCorner(CloseButton, 4)
+    AddCorner(MinimizeButton, 4)
+    
+    -- Estado da janela
+    local minimized = false
+    local originalSize = size
+    local tabs = {}
+    local currentTab = nil
+    
+    -- Função para arrastar a janela
+    local dragging = false
+    local dragInput, dragStart, startPos
+    
+    local function update(input)
+        local delta = input.Position - dragStart
+        MainFrame.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
+    end
+    
+    TopBar.InputBegan:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 then
+            dragging = true
+            dragStart = input.Position
+            startPos = MainFrame.Position
+            
+            input.Changed:Connect(function()
+                if input.UserInputState == Enum.UserInputState.End then
+                    dragging = false
+                end
+            end)
+        end
+    end)
+    
+    TopBar.InputChanged:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseMovement and dragging then
+            dragInput = input
+        end
+    end)
+    
+    UserInputService.InputChanged:Connect(function(input)
+        if input == dragInput and dragging then
+            update(input)
+        end
+    end)
+    
+    -- Funções da janela
+    function Window:Minimize()
+        minimized = not minimized
+        if minimized then
+            TweenService:Create(MainFrame, TweenInfo.new(0.3), {Size = UDim2.new(0, originalSize.X.Offset, 0, 35)}):Play()
+        else
+            TweenService:Create(MainFrame, TweenInfo.new(0.3), {Size = originalSize}):Play()
+        end
+    end
+    
+    function Window:Close()
+        ScreenGui:Destroy()
+    end
+    
+    function Window:CreateTab(name, icon)
+        local Tab = {}
+        
+        -- Botão da aba
+        local TabButton = CreateElement("TextButton", {
+            Name = name,
+            Size = UDim2.new(1, -10, 0, 35),
+            BackgroundColor3 = Colors.Button,
+            Text = "  " .. name,
+            TextColor3 = Colors.DarkText,
+            TextSize = 14,
+            Font = Enum.Font.GothamMedium,
+            TextXAlignment = Enum.TextXAlignment.Left,
+            AutoButtonColor = false,
+            Parent = TabsContainer
+        })
+        
+        AddCorner(TabButton, 6)
+        
+        -- Conteúdo da aba
+        local TabContent = CreateElement("ScrollingFrame", {
+            Name = name .. "Content",
+            Size = UDim2.new(1, 0, 1, 0),
+            BackgroundTransparency = 1,
+            BorderSizePixel = 0,
+            ScrollBarThickness = 3,
+            ScrollBarImageColor3 = Colors.Primary,
+            Visible = false,
+            Parent = ContentContainer
+        })
+        
+        local TabList = CreateElement("UIListLayout", {
+            Parent = TabContent,
+            Padding = UDim.new(0, 10),
+            SortOrder = Enum.SortOrder.LayoutOrder
+        })
+        
+        CreateElement("UIPadding", {
+            Parent = TabContent,
+            PaddingTop = UDim.new(0, 5)
+        })
+        
+        -- Selecionar aba
+        local function SelectTab()
+            if currentTab then
+                currentTab.Button.BackgroundColor3 = Colors.Button
+                currentTab.Button.TextColor3 = Colors.DarkText
+                currentTab.Content.Visible = false
+            end
+            
+            TabButton.BackgroundColor3 = Colors.Primary
+            TabButton.TextColor3 = Colors.Text
+            TabContent.Visible = true
+            TabContent.CanvasSize = UDim2.new(0, 0, 0, TabList.AbsoluteContentSize.Y + 20)
+            
+            currentTab = {
+                Button = TabButton,
+                Content = TabContent
+            }
+        end
+        
+        TabButton.MouseButton1Click:Connect(SelectTab)
+        
+        -- Efeito hover
+        TabButton.MouseEnter:Connect(function()
+            if currentTab and currentTab.Button ~= TabButton then
+                TweenService:Create(TabButton, TweenInfo.new(0.2), {BackgroundColor3 = Colors.ButtonHover}):Play()
+            end
+        end)
+        
+        TabButton.MouseLeave:Connect(function()
+            if currentTab and currentTab.Button ~= TabButton then
+                TweenService:Create(TabButton, TweenInfo.new(0.2), {BackgroundColor3 = Colors.Button}):Play()
+            end
+        end)
+        
+        -- Primeira aba selecionada automaticamente
+        if #tabs == 0 then
+            SelectTab()
+        end
+        
+        table.insert(tabs, {
+            Button = TabButton,
+            Content = TabContent,
+            Select = SelectTab
+        })
+        
+        -- Funções da aba
+        function Tab:AddButton(config)
+            local Button = CreateElement("TextButton", {
+                Size = UDim2.new(1, 0, 0, 35),
+                BackgroundColor3 = Colors.Button,
+                Text = config.Text or "Button",
+                TextColor3 = Colors.Text,
+                TextSize = 14,
+                Font = Enum.Font.GothamMedium,
+                AutoButtonColor = false,
+                Parent = TabContent
+            })
+            
+            AddCorner(Button, 6)
+            
+            -- Efeito hover
+            Button.MouseEnter:Connect(function()
+                TweenService:Create(Button, TweenInfo.new(0.2), {BackgroundColor3 = Colors.ButtonHover}):Play()
+            end)
+            
+            Button.MouseLeave:Connect(function()
+                TweenService:Create(Button, TweenInfo.new(0.2), {BackgroundColor3 = Colors.Button}):Play()
+            end)
+            
+            -- Clique
+            Button.MouseButton1Click:Connect(function()
+                if config.Callback then
+                    config.Callback()
+                end
+            end)
+            
+            return Button
+        end
+        
+        function Tab:AddToggle(config)
+            local ToggleFrame = CreateElement("Frame", {
+                Size = UDim2.new(1, 0, 0, 35),
+                BackgroundTransparency = 1,
+                Parent = TabContent
+            })
+            
+            local ToggleLabel = CreateElement("TextLabel", {
+                Size = UDim2.new(0.7, 0, 1, 0),
+                BackgroundTransparency = 1,
+                Text = config.Text or "Toggle",
+                TextColor3 = Colors.Text,
+                TextSize = 14,
+                Font = Enum.Font.GothamMedium,
+                TextXAlignment = Enum.TextXAlignment.Left,
+                Parent = ToggleFrame
+            })
+            
+            local ToggleButton = CreateElement("TextButton", {
+                Size = UDim2.new(0, 50, 0, 25),
+                Position = UDim2.new(1, -5, 0.5, 0),
+                AnchorPoint = Vector2.new(1, 0.5),
+                BackgroundColor3 = Colors.Secondary,
+                Text = "",
+                AutoButtonColor = false,
+                Parent = ToggleFrame
+            })
+            
+            AddCorner(ToggleButton, 12)
+            
+            local ToggleCircle = CreateElement("Frame", {
+                Size = UDim2.new(0, 21, 0, 21),
+                Position = UDim2.new(0, 2, 0.5, 0),
+                AnchorPoint = Vector2.new(0, 0.5),
+                BackgroundColor3 = Colors.Text,
+                Parent = ToggleButton
+            })
+            
+            AddCorner(ToggleCircle, 21)
+            
+            local state = config.Default or false
+            
+            local function UpdateToggle()
+                if state then
+                    TweenService:Create(ToggleCircle, TweenInfo.new(0.2), {Position = UDim2.new(1, -2, 0.5, 0)}):Play()
+                    TweenService:Create(ToggleButton, TweenInfo.new(0.2), {BackgroundColor3 = Colors.Primary}):Play()
+                else
+                    TweenService:Create(ToggleCircle, TweenInfo.new(0.2), {Position = UDim2.new(0, 2, 0.5, 0)}):Play()
+                    TweenService:Create(ToggleButton, TweenInfo.new(0.2), {BackgroundColor3 = Colors.Secondary}):Play()
+                end
+                
+                if config.Callback then
+                    config.Callback(state)
+                end
+            end
+            
+            ToggleButton.MouseButton1Click:Connect(function()
+                state = not state
+                UpdateToggle()
+            end)
+            
+            UpdateToggle()
+            
+            return {
+                Set = function(value)
+                    state = value
+                    UpdateToggle()
+                end,
+                Get = function()
+                    return state
+                end
+            }
+        end
+        
+        function Tab:AddSlider(config)
+            local SliderFrame = CreateElement("Frame", {
+                Size = UDim2.new(1, 0, 0, 60),
+                BackgroundTransparency = 1,
+                Parent = TabContent
+            })
+            
+            local SliderLabel = CreateElement("TextLabel", {
+                Size = UDim2.new(1, 0, 0, 20),
+                BackgroundTransparency = 1,
+                Text = config.Text or "Slider",
+                TextColor3 = Colors.Text,
+                TextSize = 14,
+                Font = Enum.Font.GothamMedium,
+                TextXAlignment = Enum.TextXAlignment.Left,
+                Parent = SliderFrame
+            })
+            
+            local SliderValue = CreateElement("TextLabel", {
+                Size = UDim2.new(0, 50, 0, 20),
+                Position = UDim2.new(1, 0, 0, 0),
+                AnchorPoint = Vector2.new(1, 0),
+                BackgroundTransparency = 1,
+                Text = tostring(config.Default or config.Min or 0),
+                TextColor3 = Colors.DarkText,
+                TextSize = 12,
+                Font = Enum.Font.GothamMedium,
+                TextXAlignment = Enum.TextXAlignment.Right,
+                Parent = SliderFrame
+            })
+            
+            local SliderBar = CreateElement("Frame", {
+                Size = UDim2.new(1, 0, 0, 6),
+                Position = UDim2.new(0, 0, 1, -15),
+                BackgroundColor3 = Colors.Secondary,
+                Parent = SliderFrame
+            })
+            
+            AddCorner(SliderBar, 3)
+            
+            local SliderFill = CreateElement("Frame", {
+                Size = UDim2.new(0, 0, 1, 0),
+                BackgroundColor3 = Colors.Primary,
+                Parent = SliderBar
+            })
+            
+            AddCorner(SliderFill, 3)
+            
+            local SliderButton = CreateElement("TextButton", {
+                Size = UDim2.new(0, 20, 0, 20),
+                Position = UDim2.new(0, 0, 0.5, 0),
+                AnchorPoint = Vector2.new(0, 0.5),
+                BackgroundColor3 = Colors.Text,
+                Text = "",
+                AutoButtonColor = false,
+                Parent = SliderBar
+            })
+            
+            AddCorner(SliderButton, 10)
+            
+            local min = config.Min or 0
+            local max = config.Max or 100
+            local value = config.Default or min
+            
+            local function UpdateSlider()
+                local percentage = (value - min) / (max - min)
+                SliderFill.Size = UDim2.new(percentage, 0, 1, 0)
+                SliderButton.Position = UDim2.new(percentage, 0, 0.5, 0)
+                SliderValue.Text = tostring(math.floor(value))
+                
+                if config.Callback then
+                    config.Callback(value)
+                end
+            end
+            
+            local dragging = false
+            
+            SliderButton.MouseButton1Down:Connect(function()
+                dragging = true
+            end)
+            
+            UserInputService.InputEnded:Connect(function(input)
+                if input.UserInputType == Enum.UserInputType.MouseButton1 then
+                    dragging = false
+                end
+            end)
+            
+            RunService.Heartbeat:Connect(function()
+                if dragging then
+                    local mousePos = UserInputService:GetMouseLocation()
+                    local barPos = SliderBar.AbsolutePosition
+                    local barSize = SliderBar.AbsoluteSize
+                    
+                    local relativeX = math.clamp((mousePos.X - barPos.X) / barSize.X, 0, 1)
+                    value = min + (max - min) * relativeX
+                    if config.Precision then
+                        value = math.floor(value / config.Precision) * config.Precision
+                    end
+                    
+                    UpdateSlider()
+                end
+            end)
+            
+            UpdateSlider()
+            
+            return {
+                Set = function(newValue)
+                    value = math.clamp(newValue, min, max)
+                    UpdateSlider()
+                end,
+                Get = function()
+                    return value
+                end
+            }
+        end
+        
+        function Tab:AddDropdown(config)
+            local DropdownFrame = CreateElement("Frame", {
+                Size = UDim2.new(1, 0, 0, 35),
+                BackgroundTransparency = 1,
+                Parent = TabContent
+            })
+            
+            local DropdownLabel = CreateElement("TextLabel", {
+                Size = UDim2.new(0.7, 0, 1, 0),
+                BackgroundTransparency = 1,
+                Text = config.Text or "Dropdown",
+                TextColor3 = Colors.Text,
+                TextSize = 14,
+                Font = Enum.Font.GothamMedium,
+                TextXAlignment = Enum.TextXAlignment.Left,
+                Parent = DropdownFrame
+            })
+            
+            local DropdownButton = CreateElement("TextButton", {
+                Size = UDim2.new(0, 120, 0, 30),
+                Position = UDim2.new(1, -5, 0.5, 0),
+                AnchorPoint = Vector2.new(1, 0.5),
+                BackgroundColor3 = Colors.Button,
+                Text = config.Default or "Select...",
+                TextColor3 = Colors.Text,
+                TextSize = 12,
+                Font = Enum.Font.GothamMedium,
+                AutoButtonColor = false,
+                Parent = DropdownFrame
+            })
+
+
+            AddCorner(DropdownButton, 6)
+            
+            local DropdownList = CreateElement("Frame", {
+                Size = UDim2.new(0, 120, 0, 0),
+                Position = UDim2.new(1, -5, 0, 35),
+                AnchorPoint = Vector2.new(1, 0),
+                BackgroundColor3 = Colors.Background,
+                BackgroundTransparency = 0.1,
+                Visible = false,
+                Parent = DropdownFrame
+            })
+            
+            AddCorner(DropdownList, 6)
+            
+            local ListLayout = CreateElement("UIListLayout", {
+                Parent = DropdownList,
+                SortOrder = Enum.SortOrder.LayoutOrder
+            })
+            
+            local open = false
+            
+            local function UpdateList()
+                DropdownList:ClearAllChildren()
+                
+                for i, option in ipairs(config.Options or {}) do
+                    local OptionButton = CreateElement("TextButton", {
+                        Size = UDim2.new(1, -10, 0, 25),
+                        Position = UDim2.new(0, 5, 0, 5 + (i-1)*30),
+                        BackgroundColor3 = Colors.Button,
+                        Text = option,
+                        TextColor3 = Colors.Text,
+                        TextSize = 12,
+                        Font = Enum.Font.GothamMedium,
+                        AutoButtonColor = false,
+                        Parent = DropdownList
+                    })
+                    
+                    AddCorner(OptionButton, 4)
+                    
+                    OptionButton.MouseEnter:Connect(function()
+                        TweenService:Create(OptionButton, TweenInfo.new(0.2), {BackgroundColor3 = Colors.ButtonHover}):Play()
+                    end)
+                    
+                    OptionButton.MouseLeave:Connect(function()
+                        TweenService:Create(OptionButton, TweenInfo.new(0.2), {BackgroundColor3 = Colors.Button}):Play()
+                    end)
+                    
+                    OptionButton.MouseButton1Click:Connect(function()
+                        DropdownButton.Text = option
+                        open = false
+                        DropdownList.Visible = false
+                        
+                        if config.Callback then
+                            config.Callback(option)
+                        end
+                    end)
+                end
+                
+                DropdownList.Size = UDim2.new(0, 120, 0, #config.Options * 30 + 10)
+            end
+            
+            DropdownButton.MouseButton1Click:Connect(function()
+                open = not open
+                DropdownList.Visible = open
+                UpdateList()
+            end)
+            
+            UpdateList()
+            
+            return {
+                Set = function(option)
+                    DropdownButton.Text = option
+                    if config.Callback then
+                        config.Callback(option)
+                    end
+                end,
+                Get = function()
+                    return DropdownButton.Text
+                end
+            }
+        end
+        
+        function Tab:AddDiscord(config)
+            local DiscordFrame = CreateElement("Frame", {
+                Size = UDim2.new(1, 0, 0, 120),
+                BackgroundTransparency = 1,
+                Parent = TabContent
+            })
+            
+            local DiscordCard = CreateElement("Frame", {
+                Size = UDim2.new(1, 0, 1, 0),
+                BackgroundColor3 = Colors.Background,
+                BackgroundTransparency = 0.2,
+                Parent = DiscordFrame
+            })
+            
+            AddCorner(DiscordCard, 8)
+            
+            local Banner = CreateElement("Frame", {
+                Size = UDim2.new(1, 0, 0, 40),
+                BackgroundColor3 = Colors.Primary,
+                Parent = DiscordCard
+            })
+            
+            AddCorner(Banner, 8)
+            
+            local Icon = CreateElement("ImageLabel", {
+                Size = UDim2.new(0, 50, 0, 50),
+                Position = UDim2.new(0, 10, 0, 20),
+                BackgroundColor3 = Colors.Button,
+                Image = "rbxassetid://10709791437", -- Ícone padrão do Discord
+                Parent = DiscordCard
+            })
+            
+            AddCorner(Icon, 25)
+            
+            local Title = CreateElement("TextLabel", {
+                Size = UDim2.new(1, -70, 0, 25),
+                Position = UDim2.new(0, 70, 0, 25),
+                BackgroundTransparency = 1,
+                Text = config.Title or "Discord Server",
+                TextColor3 = Colors.Text,
+                TextSize = 14,
+                Font = Enum.Font.GothamBold,
+                TextXAlignment = Enum.TextXAlignment.Left,
+                Parent = DiscordCard
+            })
+            
+            local InviteButton = CreateElement("TextButton", {
+                Size = UDim2.new(1, -20, 0, 30),
+                Position = UDim2.new(0, 10, 1, -40),
+                BackgroundColor3 = Color3.fromRGB(88, 101, 242), -- Azul do Discord
+                Text = "JOIN SERVER",
+                TextColor3 = Colors.Text,
+                TextSize = 12,
+                Font = Enum.Font.GothamBold,
+                AutoButtonColor = false,
+                Parent = DiscordCard
+            })
+            
+            AddCorner(InviteButton, 6)
+            
+            InviteButton.MouseEnter:Connect(function()
+                TweenService:Create(InviteButton, TweenInfo.new(0.2), {BackgroundColor3 = Color3.fromRGB(105, 116, 245)}):Play()
+            end)
+            
+            InviteButton.MouseLeave:Connect(function()
+                TweenService:Create(InviteButton, TweenInfo.new(0.2), {BackgroundColor3 = Color3.fromRGB(88, 101, 242)}):Play()
+            end)
+            
+            InviteButton.MouseButton1Click:Connect(function()
+                if config.Invite then
+                    setclipboard(config.Invite)
+                    InviteButton.Text = "COPIED!"
+                    wait(2)
+                    InviteButton.Text = "JOIN SERVER"
+                end
+            end)
+            
+            return DiscordFrame
+        end
+        
+        function Tab:AddLabel(text)
+            local Label = CreateElement("TextLabel", {
+                Size = UDim2.new(1, 0, 0, 25),
+                BackgroundTransparency = 1,
+                Text = text,
+                TextColor3 = Colors.Text,
+                TextSize = 14,
+                Font = Enum.Font.GothamMedium,
+                TextXAlignment = Enum.TextXAlignment.Left,
+                Parent = TabContent
+            })
+            
+            return Label
+        end
+        
+        return Tab
+    end
+    
+    -- Conectar botões
+    CloseButton.MouseButton1Click:Connect(function()
+        Window:Close()
+    end)
+    
+    MinimizeButton.MouseButton1Click:Connect(function()
+        Window:Minimize()
+    end)
+    
+    -- Efeitos hover nos botões
+    CloseButton.MouseEnter:Connect(function()
+        TweenService:Create(CloseButton, TweenInfo.new(0.2), {BackgroundColor3 = Color3.fromRGB(255, 80, 80)}):Play()
+    end)
+    
+    CloseButton.MouseLeave:Connect(function()
+        TweenService:Create(CloseButton, TweenInfo.new(0.2), {BackgroundColor3 = Color3.fromRGB(255, 50, 50)}):Play()
+    end)
+    
+    MinimizeButton.MouseEnter:Connect(function()
+        TweenService:Create(MinimizeButton, TweenInfo.new(0.2), {BackgroundColor3 = Colors.ButtonHover}):Play()
+    end)
+    
+    MinimizeButton.MouseLeave:Connect(function()
+        TweenService:Create(MinimizeButton, TweenInfo.new(0.2), {BackgroundColor3 = Colors.Button}):Play()
+    end)
+    
+    -- Retornar a janela
+    return Window
+end
+
+return Library
+           
