@@ -3,42 +3,70 @@ local Library = loadstring(game:HttpGet(
     "https://raw.githubusercontent.com/tlredz/Library/refs/heads/main/redz-V5-remake/main.luau"
 ))()
 
--- Window
+-- Criando janela
 local Window = Library:MakeWindow({
-  Title = "Nice Hub : Cool Game",
-  SubTitle = "dev by real_redz",
-  ScriptFolder = "redz-library-V5"
+    Title = "Nice Hub : Cool Game",
+    SubTitle = "dev by real_redz",
+    ScriptFolder = "redz-library-V5"
 })
 
--- Services
+-- Serviços
 local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+
+-- Player Local
 local LocalPlayer = Players.LocalPlayer
-
--- Character + Humanoid
 local Character = LocalPlayer.Character or LocalPlayer.CharacterAdded:Wait()
-local humanoid = Character:WaitForChild("Humanoid")
+local Humanoid = Character:WaitForChild("Humanoid")
 
--- Tab
+-- Tab principal
 local Tab = Window:MakeTab({
-  Title = "Cool Tab",
-  Icon = "Home"
+    Title = "Cool Tab",
+    Icon = "Home"
 })
 
--- Botões
-Tab:AddButton({
-  Name = "Velocity 100 and Jumper",
-  Debounce = 0.5,
-  Callback = function()
-       humanoid.WalkSpeed = 100
-       humanoid.JumpPower = 100
-  end
+-- Toggle para velocidade infinita
+local InfiniteSpeed = false
+
+Tab:AddToggle({
+    Name = "Velocidade Infinita",
+    Default = false,
+    Callback = function(Value)
+        InfiniteSpeed = Value
+        if not Value then
+            -- Resetar humanoid quando desligar
+            Humanoid.WalkSpeed = 16
+            Humanoid.JumpPower = 50
+        end
+    end
 })
 
+-- Botão para ativar WalkSpeed/JumpPower manualmente
 Tab:AddButton({
-  Name = "Reniciar Jump and Velocity",
-  Debounce = 0.5,
-  Callback = function()
-       humanoid.WalkSpeed = 16
-       humanoid.JumpPower = 50
-  end
+    Name = "Aumentar Velocidade e Pulo",
+    Debounce = 0.5,
+    Callback = function()
+        Humanoid.WalkSpeed = 100
+        Humanoid.JumpPower = 100
+    end
 })
+
+-- Botão para resetar
+Tab:AddButton({
+    Name = "Resetar Velocidade e Pulo",
+    Debounce = 0.5,
+    Callback = function()
+        Humanoid.WalkSpeed = 16
+        Humanoid.JumpPower = 50
+    end
+})
+
+-- Loop seguro para velocidade infinita
+RunService.RenderStepped:Connect(function()
+    if InfiniteSpeed then
+        if Humanoid then
+            Humanoid.WalkSpeed = 100
+            Humanoid.JumpPower = 100
+        end
+    end
+end)
