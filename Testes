@@ -1,0 +1,35 @@
+local Library = loadstring(game:HttpGet("https://raw.githubusercontent.com/tlredz/Library/refs/heads/main/redz-V5-remake/main.luau"))()
+
+local Window = Library:MakeWindow({
+  Title = "Nice Hub : Cool Game",
+  SubTitle = "dev by real_redz",
+  ScriptFolder = "redz-library-V5"
+})
+
+local LocalPlayer = Players.LocalPlayer
+local Character = LocalPlayer.Character or LocalPlayer.CharacterAdded:Wait()
+local humanoid= WaitForChild("Humanoid")
+
+local Tab = Window:MakeTab({
+  Title = "Cool Tab",
+  Icon = "Home"
+})
+
+Tab:AddButton({
+  Name = "Velocity 100 and Jumper",
+  Debounce = 0.5,
+  Callback = function()
+       humanoid.WalkSpeed = 100
+       humanoid.JumpPower = 100
+    end
+  })
+
+Tab:AddButton({
+  Name = "Reniciar Jump and Velocity",
+  Debounce = 0.5,
+  Callback = function()
+       humanoid.WalkSpeed = 16
+       humanoid.JumpPower = 50
+    end
+  })
+
