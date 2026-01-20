@@ -111,37 +111,39 @@ VerifyTab:Button({
         local count = 0
 
         for _, p in pairs(Players:GetPlayers()) do
-            -- Verifica se o jogador tem o script normal
             if p:FindFirstChild("IsChadUser") then
-                -- Se for você e também tiver o script, conta você
-                if p == localPlayer then
-                    count = count + 1
-                elseif p ~= localPlayer then
-                    -- Se não for você, marca o jogador
-                    if p.Character and p.Character:FindFirstChild("Head") then
-                        if p.Character.Head:FindFirstChild("ChadTag") then
-                            p.Character.Head.ChadTag:Destroy()
-                        end
+                count = count + 1
 
-                        local b = Instance.new("BillboardGui", p.Character.Head)
-                        b.Name = "ChadTag"
-                        b.Size = UDim2.new(0, 200, 0, 50)
-                        b.ExtentsOffset = Vector3.new(0, 3, 0)
-                        b.AlwaysOnTop = true
+                if p.Character and p.Character:FindFirstChild("Head") then
+                    local head = p.Character.Head
 
-                        local t = Instance.new("TextLabel", b)
-                        t.Size = UDim2.new(1, 0, 1, 0)
-                        t.BackgroundTransparency = 1
-                        t.Text = "CHAD HUB USER"
-
-                        -- Roxo Neon
-                        t.TextColor3 = Color3.fromRGB(191, 0, 255)
-                        t.TextStrokeColor3 = Color3.fromRGB(130, 0, 200)
-                        t.TextStrokeTransparency = 0
-
-                        t.Font = Enum.Font.GothamBold
-                        t.TextSize = 16
+                    -- Remove tag antiga
+                    if head:FindFirstChild("ChadTag") then
+                        head.ChadTag:Destroy()
                     end
+
+                    -- BillboardGui
+                    local b = Instance.new("BillboardGui")
+                    b.Name = "ChadTag"
+                    b.Parent = head
+                    b.Adornee = head
+                    b.Size = UDim2.new(0, 200, 0, 50)
+                    b.ExtentsOffset = Vector3.new(0, 3, 0)
+                    b.AlwaysOnTop = true
+
+                    -- Texto
+                    local t = Instance.new("TextLabel")
+                    t.Parent = b
+                    t.Size = UDim2.new(1, 0, 1, 0)
+                    t.BackgroundTransparency = 1
+                    t.Text = "CHAD HUB USER"
+
+                    -- Roxo Neon
+                    t.TextColor3 = Color3.fromRGB(191, 0, 255)
+                    t.TextStrokeColor3 = Color3.fromRGB(130, 0, 200)
+                    t.TextStrokeTransparency = 0
+                    t.Font = Enum.Font.GothamBold
+                    t.TextSize = 16
                 end
             end
         end
@@ -6055,6 +6057,7 @@ task.spawn(function()
         RE:WaitForChild("1RPNam1eColo1r", 9e9):FireServer("PickingRPBioColor", Color3.fromRGB(255, 19, 3))
     end)
 end)
+
 
 
 
