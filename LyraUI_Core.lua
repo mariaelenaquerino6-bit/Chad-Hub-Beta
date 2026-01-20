@@ -1,130 +1,162 @@
-
---[[
- LyraUI Core Engine
- Full rewrite – Dark / Glass / Admin Panel
- Author: Generated for user
+--[[ 
+ Lyra Hub Admin UI Engine
+ Full functional core
 ]]
 
 local Players = game:GetService("Players")
-local TweenService = game:GetService("TweenService")
 local UserInputService = game:GetService("UserInputService")
+local TweenService = game:GetService("TweenService")
 local LocalPlayer = Players.LocalPlayer
 
 local LyraUI = {}
 LyraUI.__index = LyraUI
 
 -- THEME
-LyraUI.Theme = {
-    Background = Color3.fromRGB(12,12,16),
-    Panel = Color3.fromRGB(18,18,24),
+local Theme = {
+    BG = Color3.fromRGB(15,15,20),
+    Panel = Color3.fromRGB(22,22,28),
     Stroke = Color3.fromRGB(45,45,60),
-    Accent = Color3.fromRGB(120,95,255),
+    Accent = Color3.fromRGB(140,120,255),
     Text = Color3.fromRGB(235,235,240),
-    SubText = Color3.fromRGB(170,170,180),
-    Transparency = 0.08,
-    Blur = true,
+    Sub = Color3.fromRGB(160,160,170),
+    Transparency = 0.05
 }
 
--- CREATE ROOT GUI
-function LyraUI:Create()
+-- MAIN
+function LyraUI.new()
+    local self = setmetatable({}, LyraUI)
+
     local gui = Instance.new("ScreenGui")
-    gui.Name = "LyraUI"
+    gui.Name = "LyraHub"
     gui.IgnoreGuiInset = true
     gui.ResetOnSpawn = false
     gui.Parent = LocalPlayer:WaitForChild("PlayerGui")
 
-    if self.Theme.Blur then
-        local blur = Instance.new("BlurEffect")
-        blur.Size = 18
-        blur.Parent = game:GetService("Lighting")
-    end
+    -- BLUR
+    local blur = Instance.new("BlurEffect")
+    blur.Size = 18
+    blur.Parent = game:GetService("Lighting")
 
-    self.Gui = gui
-    return self
-end
+    -- WINDOW
+    local main = Instance.new("Frame", gui)
+    main.Size = UDim2.fromOffset(720,480)
+    main.Position = UDim2.fromScale(0.5,0.5)
+    main.AnchorPoint = Vector2.new(0.5,0.5)
+    main.BackgroundColor3 = Theme.BG
+    main.BackgroundTransparency = Theme.Transparency
 
--- WINDOW
-function LyraUI:Window(title)
-    local frame = Instance.new("Frame")
-    frame.Size = UDim2.fromOffset(720,480)
-    frame.Position = UDim2.fromScale(0.5,0.5)
-    frame.AnchorPoint = Vector2.new(0.5,0.5)
-    frame.BackgroundColor3 = self.Theme.Background
-    frame.BackgroundTransparency = self.Theme.Transparency
-    frame.Parent = self.Gui
-    frame.Name = "MainWindow"
+    Instance.new("UICorner", main).CornerRadius = UDim.new(0,16)
+    local stroke = Instance.new("UIStroke", main)
+    stroke.Color = Theme.Stroke
 
-    local corner = Instance.new("UICorner", frame)
-    corner.CornerRadius = UDim.new(0,16)
-
-    local stroke = Instance.new("UIStroke", frame)
-    stroke.Color = self.Theme.Stroke
-    stroke.Thickness = 1
+    -- DRAG
+    local dragging, dragStart, startPos
+    main.InputBegan:Connect(function(i)
+        if i.UserInputType == Enum.UserInputType.MouseButton1 then
+            dragging = true
+            dragStart = i.Position
+            startPos = main.Position
+        end
+    end)
+    UserInputService.InputChanged:Connect(function(i)
+        if dragging and i.UserInputType == Enum.UserInputType.MouseMovement then
+            local delta = i.Position - dragStart
+            main.Position = startPos + UDim2.fromOffset(delta.X, delta.Y)
+        end
+    end)
+    UserInputService.InputEnded:Connect(function(i)
+        if i.UserInputType == Enum.UserInputType.MouseButton1 then
+            dragging = false
+        end
+    end)
 
     -- TOPBAR
-    local top = Instance.new("Frame", frame)
+    local top = Instance.new("Frame", main)
     top.Size = UDim2.new(1,0,0,46)
     top.BackgroundTransparency = 1
 
-    local titleLabel = Instance.new("TextLabel", top)
-    titleLabel.Text = title or "Lyra Hub Admin"
-    titleLabel.Font = Enum.Font.GothamMedium
-    titleLabel.TextSize = 16
-    titleLabel.TextColor3 = self.Theme.Text
-    titleLabel.BackgroundTransparency = 1
-    titleLabel.Position = UDim2.fromOffset(16,0)
-    titleLabel.Size = UDim2.fromScale(1,1)
-    titleLabel.TextXAlignment = Left
+    local title = Instance.new("TextLabel", top)
+    title.Text = "LYRA HUB ADMIN"
+    title.Font = Enum.Font.GothamSemibold
+    title.TextSize = 15
+    title.TextColor3 = Theme.Text
+    title.BackgroundTransparency = 1
+    title.Position = UDim2.fromOffset(16,0)
+    title.Size = UDim2.fromScale(1,1)
+    title.TextXAlignment = Enum.TextXAlignment.Left
 
-    self.WindowFrame = frame
-    return frame
+    -- SIDEBAR
+    local sidebar = Instance.new("Frame", main)
+    sidebar.Size = UDim2.fromOffset(210,434)
+    sidebar.Position = UDim2.fromOffset(0,46)
+    sidebar.BackgroundColor3 = Theme.Panel
+    sidebar.BackgroundTransparency = Theme.Transparency
+    Instance.new("UICorner", sidebar).CornerRadius = UDim.new(0,14)
+
+    local list = Instance.new("UIListLayout", sidebar)
+    list.Padding = UDim.new(0,6)
+
+    -- CONTENT
+    local content = Instance.new("Frame", main)
+    content.Size = UDim2.new(1,-220,1,-56)
+    content.Position = UDim2.fromOffset(220,56)
+    content.BackgroundTransparency = 1
+
+    self.Gui = gui
+    self.Main = main
+    self.Sidebar = sidebar
+    self.Content = content
+    self.Tabs = {}
+
+    return self
 end
 
--- SIDEBAR
-function LyraUI:Sidebar()
-    local bar = Instance.new("Frame", self.WindowFrame)
-    bar.Size = UDim2.fromOffset(220,434)
-    bar.Position = UDim2.fromOffset(0,46)
-    bar.BackgroundColor3 = self.Theme.Panel
-    bar.BackgroundTransparency = self.Theme.Transparency
-
-    local corner = Instance.new("UICorner", bar)
-    corner.CornerRadius = UDim.new(0,14)
-
-    self.SidebarFrame = bar
-    return bar
-end
-
--- TAB BUTTON
-function LyraUI:Tab(name)
-    local btn = Instance.new("TextButton", self.SidebarFrame)
-    btn.Size = UDim2.new(1,-20,0,42)
-    btn.Position = UDim2.fromOffset(10,10 + (#self.SidebarFrame:GetChildren()*46))
+-- TAB
+function LyraUI:CreateTab(name)
+    local btn = Instance.new("TextButton", self.Sidebar)
+    btn.Size = UDim2.new(1,-12,0,40)
     btn.Text = name
     btn.Font = Enum.Font.Gotham
     btn.TextSize = 14
-    btn.TextColor3 = self.Theme.Text
-    btn.BackgroundColor3 = self.Theme.Background
-    btn.BackgroundTransparency = 0.2
+    btn.TextColor3 = Theme.Text
+    btn.BackgroundColor3 = Theme.BG
+    btn.BackgroundTransparency = 0.15
+    Instance.new("UICorner", btn).CornerRadius = UDim.new(0,10)
 
-    local corner = Instance.new("UICorner", btn)
-    corner.CornerRadius = UDim.new(0,10)
+    local page = Instance.new("ScrollingFrame", self.Content)
+    page.Size = UDim2.fromScale(1,1)
+    page.CanvasSize = UDim2.fromOffset(0,0)
+    page.ScrollBarImageTransparency = 1
+    page.Visible = false
 
-    return btn
+    local layout = Instance.new("UIListLayout", page)
+    layout.Padding = UDim.new(0,8)
+
+    btn.MouseButton1Click:Connect(function()
+        for _, t in pairs(self.Tabs) do
+            t.Page.Visible = false
+        end
+        page.Visible = true
+    end)
+
+    table.insert(self.Tabs, {Button = btn, Page = page})
+    if #self.Tabs == 1 then
+        page.Visible = true
+    end
+
+    return page
 end
 
--- COMMAND LIST ITEM
-function LyraUI:Command(text)
-    local lbl = Instance.new("TextLabel", self.WindowFrame)
-    lbl.Size = UDim2.new(1,-260,0,32)
-    lbl.Position = UDim2.fromOffset(240,60 + math.random(0,300))
+-- COMMAND ITEM
+function LyraUI:AddCommand(tab, text)
+    local lbl = Instance.new("TextLabel", tab)
+    lbl.Size = UDim2.new(1,-12,0,36)
     lbl.Text = text
     lbl.Font = Enum.Font.Code
     lbl.TextSize = 13
-    lbl.TextColor3 = self.Theme.SubText
+    lbl.TextColor3 = Theme.Sub
     lbl.BackgroundTransparency = 1
-    lbl.TextXAlignment = Left
-    return lbl
+    lbl.TextXAlignment = Enum.TextXAlignment.Left
 end
 
 return LyraUI
