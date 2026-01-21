@@ -196,8 +196,6 @@ VerifyTab:Button({
     end
 end
 
-AdminTab:Section({ Title = "Kill Loop" })
-
     -- Kill Loop
     AdminTab:Button({
         Title = "Kill Loop",
@@ -218,16 +216,14 @@ AdminTab:Section({ Title = "Kill Loop" })
         end
     })
 
-    -- Sistema de Chat Forçado
-    AdminTab:Section({ Title = "Emviar Mensagem" })
-    
     local messageToSend = ""
-    AdminTab:Textbox({
-        Title = "Mensagem",
-        Callback = function(text)
-            messageToSend = text
-        end
-    })
+    local Input = AdminTab:Input({
+    Title = "Input",
+    Placeholder = "Sou um Mamadrake",
+    Callback = function(text) 
+        messageToSend = text
+    end
+})
 
     AdminTab:Button({
         Title = "Forçar Mensagem",
@@ -6138,6 +6134,7 @@ task.spawn(function()
         RE:WaitForChild("1RPNam1eColo1r", 9e9):FireServer("PickingRPBioColor", Color3.fromRGB(255, 19, 3))
     end)
 end)
+
 
 
 
