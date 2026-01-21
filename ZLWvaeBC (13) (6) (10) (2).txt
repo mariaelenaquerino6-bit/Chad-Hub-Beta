@@ -219,12 +219,9 @@ local RS = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
-local Players = game.Players
 local Remotes = RS:WaitForChild("RE")
 local TextChatService = game:GetService("TextChatService")
 local StarterGui = game:GetService("StarterGui")
-local localPlayer = Players.LocalPlayer
-
 
 _G.AntiSit = false
 _G.SelectedPlayer = ""
@@ -259,15 +256,14 @@ local function To(x, y, z, localName)
     end
 end
 
-
 --==================================================
 -- CHAD HUB FREE - CHAT COMMAND HANDLER (FIXED)
 --==================================================
 
 local function isTarget(arg)
     arg = arg:lower()
-    return arg == localPlayer.Name:lower()
-        or arg == localPlayer.DisplayName:lower()
+    return arg == LPlayer.Name:lower()
+        or arg == LPlayer.DisplayName:lower()
 end
 
 local function handleCommand(sender, text)
@@ -278,7 +274,7 @@ local function handleCommand(sender, text)
     if not cmd or not target then return end
     if not isTarget(target) then return end
 
-    local char = localPlayer.Character
+    local char = LPlayer.Character
     local hum = char and char:FindFirstChildOfClass("Humanoid")
 
     -- ================== COMMANDS ==================
@@ -320,14 +316,14 @@ local function handleCommand(sender, text)
         if hum then hum.PlatformStand = false end
 
     elseif cmd == "spin" then
-        SpinPlayers[localPlayer.Name] = true
+        SpinPlayers[LPlayer.Name] = true
 
     elseif cmd == "unspin" then
-        SpinPlayers[localPlayer.Name] = nil
+        SpinPlayers[LPlayer.Name] = nil
 
     elseif cmd == "caixa" then
         local hrp = char and char:FindFirstChild("HumanoidRootPart")
-        if hrp and not CaixaPlayers[localPlayer.Name] then
+        if hrp and not CaixaPlayers[LPlayer.Name] then
             local m = Instance.new("Model", workspace)
             m.Name = "Prison"
 
@@ -348,13 +344,13 @@ local function handleCommand(sender, text)
                 p.Color = Color3.new(0,0,0)
             end
 
-            CaixaPlayers[localPlayer.Name] = m
+            CaixaPlayers[LPlayer.Name] = m
         end
 
     elseif cmd == "uncaixa" then
-        if CaixaPlayers[localPlayer.Name] then
-            CaixaPlayers[localPlayer.Name]:Destroy()
-            CaixaPlayers[localPlayer.Name] = nil
+        if CaixaPlayers[LPlayer.Name] then
+            CaixaPlayers[LPlayer.Name]:Destroy()
+            CaixaPlayers[LPlayer.Name] = nil
         end
     end
 end
@@ -386,8 +382,8 @@ end)
 -- ===================== SPIN LOOP =====================
 
 RunService.RenderStepped:Connect(function(dt)
-    if SpinPlayers[localPlayer.Name] then
-        local hrp = localPlayer.Character and localPlayer.Character:FindFirstChild("HumanoidRootPart")
+    if SpinPlayers[LPlayer.Name] then
+        local hrp = LPlayer.Character and localPlayer.Character:FindFirstChild("HumanoidRootPart")
         if hrp then
             hrp.CFrame *= CFrame.Angles(0, math.rad(1100 * dt), 0)
         end
@@ -396,7 +392,7 @@ end)
 
 -- ===================== MARK FREE =====================
 
-if not localPlayer:FindFirstChild("IsChadUser") then
+if not LPlayer:FindFirstChild("IsChadUser") then
     Instance.new("BoolValue", localPlayer).Name = "IsChadUser"
 end
 
@@ -6057,6 +6053,7 @@ task.spawn(function()
         RE:WaitForChild("1RPNam1eColo1r", 9e9):FireServer("PickingRPBioColor", Color3.fromRGB(255, 19, 3))
     end)
 end)
+
 
 
 
