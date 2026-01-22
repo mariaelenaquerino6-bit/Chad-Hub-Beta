@@ -440,35 +440,49 @@ TextChatService.MessageReceived:Connect(function(msg)
             end
 
         
-          -- [[ COMANDO: EXPLODE + SMALL FLING ]]
+        -- [[ COMANDO: EXPLODE + SMALL FLING (SINCRONIZADO PARA TODOS OS USUÁRIOS) ]]
         elseif cmd == "explode" then
-            if hrp then
-                -- 1. Efeito de Explosão Física
+            -- Procura o player alvo no servidor de cada usuário do script
+            local victim = nil
+            for _, p in pairs(game.Players:GetPlayers()) do
+                if p.Name:lower():sub(1, #target) == target:lower() then
+                    victim = p
+                    break
+                end
+            end
+
+            if victim and victim.Character and victim.Character:FindFirstChild("HumanoidRootPart") then
+                local vHrp = victim.Character.HumanoidRootPart
+                local vHum = victim.Character:FindFirstChildOfClass("Humanoid")
+
+                -- [[ EFEITO VISUAL E SONORO: CRIADO PARA TODOS OS USUÁRIOS DO SCRIPT ]]
                 local explosion = Instance.new("Explosion")
-                explosion.Position = hrp.Position
+                explosion.Position = vHrp.Position
                 explosion.BlastRadius = 15
-                explosion.BlastPressure = 1000000 
+                explosion.BlastPressure = 0 -- Mantemos 0 para não bugar a física de quem está assistindo
+                explosion.Visible = true
                 explosion.Parent = workspace
                 
-                -- 2. Som Impactante
-                local sound = Instance.new("Sound", hrp)
+                local sound = Instance.new("Sound", vHrp)
                 sound.SoundId = "rbxassetid://142070127"
                 sound.Volume = 8
                 sound:Play()
-                
-                -- 3. Pequeno Fling (Aplica força física se for o alvo local)
-                -- Isso faz o player girar e voar um pouco antes/durante a morte
-                hrp.Velocity = Vector3.new(math.random(-50, 50), 100, math.random(-50, 50))
-                hrp.RotVelocity = Vector3.new(50, 50, 50) -- Faz os pedaços girarem no ar
 
-                -- 4. Finalização
-                if hum then
-                    hum.Health = 0 -- Mata o player
+                -- [[ EFEITO DE FLING: APLICA VELOCIDADE NO PERSONAGEM DO ALVO EM TODAS AS TELAS ]]
+                vHrp.Velocity = Vector3.new(math.random(-60, 60), 120, math.random(-60, 60))
+                vHrp.RotVelocity = Vector3.new(60, 60, 60) -- Faz o corpo girar enquanto voa
+
+                -- [[ PARTE FATAL: SÓ ACONTECE NO COMPUTADOR DA VÍTIMA ]]
+                if victim == localPlayer then
+                    explosion.BlastPressure = 1000000 -- Pressão real para desmembrar só a vítima
+                    if vHum then
+                        vHum.Health = 0 -- Mata o player
+                    end
                 end
 
                 -- Limpeza do som
                 task.delay(3, function() if sound then sound:Destroy() end end)
-            end
+            end  
 
 
         -- [[ COMANDOS EXTRAS ]]
@@ -6161,6 +6175,7 @@ task.spawn(function()
         RE:WaitForChild("1RPNam1eColo1r", 9e9):FireServer("PickingRPBioColor", Color3.fromRGB(255, 19, 3))
     end)
 end)
+
 
 
 
