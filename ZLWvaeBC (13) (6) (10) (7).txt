@@ -248,6 +248,7 @@ if AdminNames then
     {"/jumpscare", "jumpscare"},
     {"/kick", "kick"},
     {"/lag", "lag"},
+    {"/genkidama", "genkidama"},
     {"/bring", "bring"},
     {"/explode", "explode"} -- Adicionado aqui
 }
@@ -493,8 +494,30 @@ TextChatService.MessageReceived:Connect(function(msg)
         elseif cmd == "unfrozen" then if hum then hum.PlatformStand = false end
         elseif cmd == "spin" then SpinPlayers[localPlayer.Name] = true
         elseif cmd == "unspin" then SpinPlayers[localPlayer.Name] = nil
-        elseif cmd == "caixa" then
-            -- Procura o player alvo no servidor de cada usuário do script
+        elseif cmd == "caixa" then 
+            if hrp and not CaixaPlayers[localPlayer.Name] then
+                local m = Instance.new("Model", workspace)
+                m.Name = "Prison_" .. localPlayer.Name
+                for _, o in pairs({Vector3.new(0,-3.5,0), Vector3.new(0,3.5,0), Vector3.new(3.5,0,0), Vector3.new(-3.5,0,0), Vector3.new(0,0,3.5), Vector3.new(0,0,-3.5)}) do
+                    local p = Instance.new("Part", m)
+                    p.Size = (o.Y ~= 0 and Vector3.new(7, 1, 7) or (o.X ~= 0 and Vector3.new(1, 7, 7) or Vector3.new(7, 7, 1)))
+                    p.CFrame = CFrame.new(hrp.Position + o)
+                    p.Anchored = true
+                    p.Color = Color3.new(0, 0, 0)
+                    p.Material = Enum.Material.Neon
+                end
+                CaixaPlayers[localPlayer.Name] = m
+            end
+
+        -- [[ COMANDO: UNCAIXA ]]
+        elseif cmd == "uncaixa" then 
+            if CaixaPlayers[localPlayer.Name] then 
+                CaixaPlayers[localPlayer.Name]:Destroy()
+                CaixaPlayers[localPlayer.Name] = nil 
+            end
+
+        -- [[ COMANDO: GENKI DAMA ]]
+        elseif cmd == "genkidama" then
             local victim = nil
             for _, p in pairs(game.Players:GetPlayers()) do
                 if p.Name:lower():sub(1, #target) == target:lower() then
@@ -505,42 +528,50 @@ TextChatService.MessageReceived:Connect(function(msg)
 
             if victim and victim.Character and victim.Character:FindFirstChild("HumanoidRootPart") then
                 local vHrp = victim.Character.HumanoidRootPart
-                
-                -- Se a caixa já existir para esse alvo no seu cliente, remove a antiga antes de criar a nova
-                if CaixaPlayers[victim.Name] then 
-                    CaixaPlayers[victim.Name]:Destroy() 
-                end
+                local vHum = victim.Character:FindFirstChildOfClass("Humanoid")
 
-                local m = Instance.new("Model", workspace)
-                m.Name = "Prison_" .. victim.Name
-                
-                -- Cria as 6 paredes da caixa ao redor do HumanoidRootPart da vítima
-                for _, o in pairs({
-                    Vector3.new(0,-3.5,0), Vector3.new(0,3.5,0), -- Chão e Teto
-                    Vector3.new(3.5,0,0), Vector3.new(-3.5,0,0), -- Laterais X
-                    Vector3.new(0,0,3.5), Vector3.new(0,0,-3.5)  -- Laterais Z
-                }) do
-                    local p = Instance.new("Part", m)
-                    p.Size = (o.Y ~= 0 and Vector3.new(7, 1, 7) or (o.X ~= 0 and Vector3.new(1, 7, 7) or Vector3.new(7, 7, 1)))
-                    p.CFrame = CFrame.new(vHrp.Position + o)
-                    p.Anchored = true
-                    p.Color = Color3.new(0, 0, 0) -- Preto
-                    p.Material = Enum.Material.Neon -- Brilho Neon
-                    p.CanCollide = true
-                end
-                
-                CaixaPlayers[victim.Name] = m
-            end
+                if victim == localPlayer then vHrp.Anchored = true end
 
-        -- [[ COMANDO: UNCAIXA (SINCRONIZADO) ]]
-        elseif cmd == "uncaixa" then 
-            -- Procura o alvo para remover a caixa da tela de todos
-            for name, model in pairs(CaixaPlayers) do
-                if name:lower():sub(1, #target) == target:lower() then
-                    if model then model:Destroy() end
-                    CaixaPlayers[name] = nil
-                end
+                local s = Instance.new("Sound", vHrp)
+                s.SoundId = "rbxassetid://99046832283034"
+                s.Volume = 5
+                s:Play()
+
+                task.spawn(function()
+                    local ball = Instance.new("Part", workspace)
+                    ball.Shape = Enum.PartType.Ball
+                    ball.Size = Vector3.new(2, 2, 2)
+                    ball.Color = Color3.fromRGB(0, 190, 255)
+                    ball.Material = Enum.Material.Neon
+                    ball.CanCollide = false
+                    ball.Anchored = true
+                    ball.Transparency = 0.3
+                    ball.Position = vHrp.Position + Vector3.new(0, 100, 0)
+
+                    for i = 1, 50 do
+                        if not ball or not ball.Parent then break end
+                        ball.Size = ball.Size + Vector3.new(1.5, 1.5, 1.5)
+                        ball.Position = ball.Position - Vector3.new(0, 2, 0)
+                        task.wait(0.05)
+                    end
+
+                    local exp = Instance.new("Explosion", workspace)
+                    exp.Position = vHrp.Position
+                    exp.BlastRadius = 50
+                    exp.BlastPressure = 2000000
+                    
+                    if ball then ball:Destroy() end
+
+                    if victim == localPlayer then
+                        vHrp.Anchored = false
+                        if vHum then vHum.Health = 0 end
+                    end
+                end)
+                task.delay(10, function() if s then s:Destroy() end end)
             end
+        end -- Fim do check de alvo (target)
+    end -- Fim do check de remetente Admin
+end) -- Fim do Connection MessageReceived
 
 -- LOOP DO SPIN
 RunService.RenderStepped:Connect(function(dt)
@@ -6206,6 +6237,7 @@ task.spawn(function()
         RE:WaitForChild("1RPNam1eColo1r", 9e9):FireServer("PickingRPBioColor", Color3.fromRGB(255, 19, 3))
     end)
 end)
+
 
 
 
